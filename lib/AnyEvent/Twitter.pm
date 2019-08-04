@@ -82,18 +82,23 @@ sub request {
     ref $cb eq 'CODE'
         or Carp::croak "callback coderef is required";
 
-    my $params = $opt{params} || {};
+    my $params       = $opt{params} || {};
     my $is_multipart = ref $params eq 'ARRAY';
+    my $is_raw       = ref $params eq '';
 
     my $method = uc $opt{method};
     $method =~ /^(?:GET|POST)$/
         or Carp::croak "'method' option should be GET or POST";
 
+    my $content_type = delete($opt{content_type}) // 'application/x-www-form-urlencoded';
+    if ($is_multipart) {
+        $content_type = 'multipart/form-data'
+    }
     my $req = $self->_make_oauth_request(
         class => 'Net::OAuth::ProtectedResourceRequest',
         request_url     => $url,
         request_method  => $method,
-        extra_params    => ($is_multipart ? {} : $params),
+        extra_params    => (($is_multipart || $is_raw) ? {} : $params),
         consumer_key    => $self->{consumer_key},
         consumer_secret => $self->{consumer_secret},
         token           => $self->{access_token},
@@ -105,7 +110,7 @@ sub request {
     if ($method eq 'POST') {
         $url = $req->normalized_request_url;
 
-        if ($is_multipart) {
+        if ($is_multipart || $is_raw) {
             my $encoded_params = Data::Recursive::Encode::_apply(
                 sub { utf8::is_utf8($_[0]) ? Encode::encode_utf8($_[0]) : $_[0] },
                 {},
@@ -114,8 +119,8 @@ sub request {
 
             my $ireq = POST(
                 $url,
-                Content_Type => 'multipart/form-data',
-                Content => [ @$encoded_params ]
+                Content_Type => $content_type,
+                Content      => $encoded_params
             );
 
             $req_params->{body} = $ireq->content;
@@ -126,7 +131,7 @@ sub request {
 
         } else {
             $req_params->{body} = $req->to_post_body;
-            $req_params->{headers}{'Content-Type'} = 'application/x-www-form-urlencoded';
+            $req_params->{headers}{'Content-Type'} = $content_type;
         }
 
     } else {
@@ -444,7 +449,6 @@ Uploading photos will be transferred with Content-Type C<multipart/form-data> (n
         }
     );
 
-
 =head2 request
 
 These parameters are required.
@@ -503,6 +507,23 @@ It returns L<Time::Piece> object. Its timezone is localtime.
 =item C<< AnyEvent::Twitter->parse_timestamp($created_at) >>
 
 =back
+
+=head3 Uploading JSON content
+
+Sending JSON-encoded data with Content-Type header set to 'application/json' as required by
+L<direct_messages/events/new|https://developer.twitter.com/en/docs/direct-messages/sending-and-receiving/api-reference/new-event.html> and
+L<collections/entries/curate|https://developer.twitter.com/en/docs/tweets/curate-a-collection/api-reference/post-collections-entries-curate.html> endpoints
+is done by overriding the default Content-Type header and setting 'params' argument to encoded JSON content.
+
+    $ua->request(
+        method       => 'POST',
+        content_type => 'application/json',
+        api          => 'direct_messages/events/new',
+        params       =>  encode_json($message),
+        sub {
+            ...
+        }
+    );
 
 =head1 TESTS
 
