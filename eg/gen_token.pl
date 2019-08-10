@@ -9,7 +9,7 @@ use AnyEvent::Twitter;
 
 my %p;
 
-print "Register your app at https://dev.twitter.com/apps\n\n";
+print "Register your app at https://developer.twitter.com/en/apps\n\n";
 print "Paste your\n";
 
 $p{consumer_key} = do {

@@ -429,7 +429,7 @@ Possible values are: C<1.1> or C<1.0>
 
 You can use C<statuses/update_with_media> API to upload photos by specifying parameters as arrayref like below example.
 
-Uploading photos will be tranferred with Content-Type C<multipart/form-data> (not C<application/x-www-form-urlencoded>)
+Uploading photos will be transferred with Content-Type C<multipart/form-data> (not C<application/x-www-form-urlencoded>)
 
     use utf8;
     $ua->post(
@@ -462,7 +462,7 @@ The C<api> parameter will be internally processed as:
     sprintf 'https://api.twitter.com/1.1/%s.json', $api; # version 1.1
     sprintf 'http://api.twitter.com/1/%s.json',    $api; # version 1.0
 
-You can find available C<api>s at L<API Documentation|https://dev.twitter.com/docs/api>
+You can find available C<api>s at L<API Documentation|https://developer.twitter.com/en/docs/api-reference-index>
 
 =item C<method> and C<params>
 
