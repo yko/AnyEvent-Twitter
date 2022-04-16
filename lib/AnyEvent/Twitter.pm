@@ -87,8 +87,8 @@ sub request {
     my $is_raw       = ref $params eq '';
 
     my $method = uc $opt{method};
-    $method =~ /^(?:GET|POST)$/
-        or Carp::croak "'method' option should be GET or POST";
+    $method =~ /^(?:GET|POST|PUT|DELETE|OPTIONS)$/
+        or Carp::croak "'method' option should be GET, POST, PUT, DELETE, OPTIONS";
 
     my $content_type = delete($opt{content_type}) // 'application/x-www-form-urlencoded';
     if ($is_multipart) {
